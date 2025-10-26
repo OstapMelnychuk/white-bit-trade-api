@@ -5,6 +5,7 @@ import jakarta.websocket.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,9 @@ public class WhiteBitWsClient {
     @Autowired
     private final ObjectMapper mapper;
 
+    @Value("${whitebit.websocket.enabled:true}")
+    private boolean enabled;
+
     private Session session;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
@@ -38,6 +42,12 @@ public class WhiteBitWsClient {
 
     @EventListener(ApplicationReadyEvent.class)
     public void startWebSocketClient() {
+        //For test and build purposes
+        if (!enabled) {
+            log.info("WhiteBit WebSocket client is disabled.");
+            return;
+        }
+
         try {
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             container.setDefaultMaxTextMessageBufferSize(1024 * 1024 * 5);
